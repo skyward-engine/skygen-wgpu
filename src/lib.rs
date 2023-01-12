@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use state::State;
 use winit::{
-    event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent, DeviceEvent},
+    event::{DeviceEvent, ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent},
     event_loop::{ControlFlow, EventLoopBuilder},
     platform::windows::EventLoopBuilderExtWindows,
     window::WindowBuilder,
@@ -17,6 +17,7 @@ pub mod resources;
 pub mod state;
 pub mod texture;
 pub mod vertex;
+pub mod mesh;
 
 pub async fn run() {
     env_logger::init();
@@ -28,7 +29,7 @@ pub async fn run() {
         .unwrap();
 
     let mut state = State::new(&window).await;
-    let mut last_render_time = Instant::now(); 
+    let mut last_render_time = Instant::now();
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::RedrawRequested(window_id) if window_id == window.id() => {

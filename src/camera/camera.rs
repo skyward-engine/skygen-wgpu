@@ -1,8 +1,6 @@
 use std::f32::consts::FRAC_PI_2;
 
-use cgmath::{perspective, Deg, InnerSpace, Matrix4, Point3, Rad, Vector3};
-
-use super::uniform::CameraUniform;
+use cgmath::{InnerSpace, Matrix4, Point3, Rad, Vector3};
 
 #[derive(Debug)]
 pub struct Camera {

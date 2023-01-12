@@ -1,18 +1,14 @@
 use std::time::Duration;
 
-use cgmath::{InnerSpace, Matrix4, Rotation3, SquareMatrix, Zero};
+use cgmath::{InnerSpace, Rotation3, Zero};
 use wgpu::{
-    include_wgsl,
     util::{BufferInitDescriptor, DeviceExt},
-    Backends, BindGroup, BindGroupDescriptor, BindGroupEntry, BindingResource, BlendState, Buffer,
-    BufferBindingType, BufferUsages, Color, ColorTargetState, ColorWrites,
-    CommandEncoderDescriptor, CompareFunction, CompositeAlphaMode, DepthBiasState,
-    DepthStencilState, Device, DeviceDescriptor, Face, Features, FragmentState, FrontFace, Limits,
-    MultisampleState, Operations, PowerPreference, PresentMode, PrimitiveTopology, Queue,
-    RenderPassColorAttachment, RenderPassDepthStencilAttachment, RenderPassDescriptor,
-    RenderPipeline, RenderPipelineDescriptor, RequestAdapterOptions, ShaderStages, StencilState,
-    Surface, SurfaceConfiguration, TextureSampleType, TextureUsages, TextureViewDimension,
-    VertexState,
+    Backends, BindGroup, BindGroupEntry, Buffer, BufferBindingType, Color,
+    CommandEncoderDescriptor, CompositeAlphaMode, Device, DeviceDescriptor, Features, Limits,
+    Operations, PowerPreference, PresentMode, Queue, RenderPassColorAttachment,
+    RenderPassDepthStencilAttachment, RenderPassDescriptor, RenderPipeline, RequestAdapterOptions,
+    ShaderStages, Surface, SurfaceConfiguration, TextureSampleType, TextureUsages,
+    TextureViewDimension,
 };
 use winit::{
     dpi::PhysicalSize,
@@ -30,15 +26,10 @@ use crate::{
     model::{DrawModel, Model, ModelVertex},
     resources,
     texture::Texture,
-    vertex::{TexturedVertex, Vertex, INDICES, VERTICES},
+    vertex::Vertex,
 };
 
 const NUM_INSTANCES_PER_ROW: u32 = 20;
-const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(
-    NUM_INSTANCES_PER_ROW as f32 * 0.5,
-    0.0,
-    NUM_INSTANCES_PER_ROW as f32 * 0.5,
-);
 
 pub struct State {
     pub(crate) surface: Surface,
@@ -111,7 +102,6 @@ impl State {
                     } else {
                         cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
                     };
-                    // let rotation = cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(180.0));
 
                     Instance { position, rotation }
                 })
@@ -139,7 +129,7 @@ impl State {
         let camera = Camera::new((0.0, 5.0, 10.0), cgmath::Deg(-90.0), cgmath::Deg(-20.0));
         let projection =
             Projection::new(config.width, config.height, cgmath::Deg(45.0), 0.1, 100.0);
-        let camera_controller = CameraController::new(4.0, 0.4);
+        let camera_controller = CameraController::new(7.48341, 1.4);
 
         let texture_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -180,7 +170,7 @@ impl State {
                 label: Some("texture_bind_group_layout"),
             });
 
-        let mut camera_uniform = CameraUniform::new();
+        let camera_uniform = CameraUniform::new();
 
         let camera_buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: Some("camera-buffer"),
@@ -219,7 +209,6 @@ impl State {
             _padding2: 0,
         };
 
-        // We'll want to update our lights position, so we use COPY_DST
         let light_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Light VB"),
             contents: bytemuck::cast_slice(&[light_uniform]),
@@ -426,16 +415,16 @@ impl State {
 
             pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
 
-            use crate::model::DrawLight; // NEW!
-            pass.set_pipeline(&self.light_pipeline); // NEW!
-            pass.draw_light_model(&self.model, &self.camera_bind_group, &self.light_bind_group); // NEW!
+            use crate::model::DrawLight;
+            pass.set_pipeline(&self.light_pipeline);
+            pass.draw_light_model(&self.model, &self.camera_bind_group, &self.light_bind_group);
 
             pass.set_pipeline(&self.pipeline);
             pass.draw_model_instanced(
                 &self.model,
                 0..self.instances.len() as u32,
                 &self.camera_bind_group,
-                &self.light_bind_group, // NEW
+                &self.light_bind_group,
             );
         }
 
@@ -481,11 +470,8 @@ fn create_render_pipeline(
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
             cull_mode: Some(wgpu::Face::Back),
-            // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
             polygon_mode: wgpu::PolygonMode::Fill,
-            // Requires Features::DEPTH_CLIP_CONTROL
             unclipped_depth: false,
-            // Requires Features::CONSERVATIVE_RASTERIZATION
             conservative: false,
         },
         depth_stencil: depth_format.map(|format| wgpu::DepthStencilState {

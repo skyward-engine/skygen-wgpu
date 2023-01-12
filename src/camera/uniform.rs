@@ -1,10 +1,7 @@
 use bytemuck::{Pod, Zeroable};
 use cgmath::SquareMatrix;
 
-use super::{
-    camera::{Camera, OPENGL_TO_WGPU_MATRIX},
-    projection::Projection,
-};
+use super::{camera::Camera, projection::Projection};
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, Pod, Zeroable)]

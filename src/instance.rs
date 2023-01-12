@@ -1,5 +1,4 @@
 use bytemuck::{Pod, Zeroable};
-use cgmath::{Matrix, Matrix4, Quaternion, Vector3};
 
 pub struct Instance {
     pub position: cgmath::Vector3<f32>,

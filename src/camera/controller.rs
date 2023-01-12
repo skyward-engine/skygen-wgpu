@@ -3,7 +3,7 @@ use std::time::Duration;
 use cgmath::{InnerSpace, Rad, Vector3};
 use winit::{
     dpi::PhysicalPosition,
-    event::{ElementState, KeyboardInput, MouseScrollDelta, VirtualKeyCode, WindowEvent},
+    event::{ElementState, MouseScrollDelta, VirtualKeyCode},
 };
 
 use super::camera::{Camera, SAFE_FRAC_PI_2};
