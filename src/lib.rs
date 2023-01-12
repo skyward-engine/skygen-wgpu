@@ -1,6 +1,8 @@
+use std::time::Instant;
+
 use state::State;
 use winit::{
-    event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent},
+    event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent, DeviceEvent},
     event_loop::{ControlFlow, EventLoopBuilder},
     platform::windows::EventLoopBuilderExtWindows,
     window::WindowBuilder,
@@ -8,6 +10,10 @@ use winit::{
 
 pub mod camera;
 pub mod instance;
+// pub mod mesh;
+pub mod light;
+pub mod model;
+pub mod resources;
 pub mod state;
 pub mod texture;
 pub mod vertex;
@@ -20,25 +26,32 @@ pub async fn run() {
         .with_title("skygen")
         .build(&event_loop)
         .unwrap();
+
     let mut state = State::new(&window).await;
+    let mut last_render_time = Instant::now(); 
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::RedrawRequested(window_id) if window_id == window.id() => {
-            state.update();
+            let now = Instant::now();
+            let dt = now - last_render_time;
+            last_render_time = now;
+            state.update(dt);
+
             match state.render() {
                 Ok(_) => {}
-                // Reconfigure the surface if lost
                 Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
-                // The system is out of memory, we should probably quit
                 Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                // All other errors (Outdated, Timeout) should be resolved by the next frame
                 Err(e) => eprintln!("{:?}", e),
             }
         }
         Event::MainEventsCleared => {
-            // RedrawRequested will only trigger once, unless we manually
-            // request it.
             window.request_redraw();
+        },
+        Event::DeviceEvent {
+            event: DeviceEvent::MouseMotion{ delta, },
+            .. // We're not using device_id currently
+        } => if state.mouse_pressed {
+            state.camera_controller.process_mouse(delta.0, delta.1)
         }
         Event::WindowEvent {
             ref event,
