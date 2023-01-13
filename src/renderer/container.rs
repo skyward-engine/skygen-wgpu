@@ -10,6 +10,25 @@ pub struct RenderContainer {
 }
 
 impl RenderContainer {
+    /// Inserts a pipeline for a render component that uses a "colored" vertex format.
+    ///
+    /// # Parameters
+    ///
+    /// - `device`: A reference to the device that will be used to create the pipeline.
+    /// - `surface_config`: A reference to the configuration of the surface that the pipeline will render to.
+    ///
+    /// # Type Parameters
+    ///
+    /// - `T`: The type of the render component that the pipeline will be used to render.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let device = ...;
+    /// let surface_config = ...;
+    /// let mut render_container = RenderContainer::new();
+    /// render_container.insert_pipeline_colored::<MyRenderComponent>(&device, &surface_config);
+    /// ```
     pub fn insert_pipeline_colored<T: RenderComponent + 'static>(
         &mut self,
         device: &Device,
@@ -18,6 +37,25 @@ impl RenderContainer {
         self.insert_typed_pipeline::<T, ColoredVertex>(device, surface_config)
     }
 
+    /// Inserts a pipeline for a render component that uses a "textured" vertex format.
+    ///
+    /// # Parameters
+    ///
+    /// - `device`: A reference to the device that will be used to create the pipeline.
+    /// - `surface_config`: A reference to the configuration of the surface that the pipeline will render to.
+    ///
+    /// # Type Parameters
+    ///
+    /// - `T`: The type of the render component that the pipeline will be used to render.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let device = ...;
+    /// let surface_config = ...;
+    /// let mut render_container = RenderContainer::new();
+    /// render_container.insert_pipeline_textured::<MyRenderComponent>(&device, &surface_config);
+    /// ```
     pub fn insert_pipeline_textured<T: RenderComponent + 'static>(
         &mut self,
         device: &Device,
@@ -26,6 +64,26 @@ impl RenderContainer {
         self.insert_typed_pipeline::<T, TexturedVertex>(device, surface_config)
     }
 
+    /// Inserts a pipeline for a render component with a specified vertex format.
+    ///
+    /// # Parameters
+    ///
+    /// - `device`: A reference to the device that will be used to create the pipeline.
+    /// - `surface_config`: A reference to the configuration of the surface that the pipeline will render to.
+    ///
+    /// # Type Parameters
+    ///
+    /// - `T`: The type of the render component that the pipeline will be used to render.
+    /// - `V`: The type of the vertex format that the pipeline will use.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let device = ...;
+    /// let surface_config = ...;
+    /// let mut render_container = RenderContainer::new();
+    /// render_container.insert_typed_pipeline::<MyRenderComponent, MyVertex>(&device, &surface_config);
+    /// ```
     pub fn insert_typed_pipeline<T: RenderComponent + 'static, V: Descriptable>(
         &mut self,
         device: &Device,
