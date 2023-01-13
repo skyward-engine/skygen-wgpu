@@ -12,12 +12,13 @@ pub mod camera;
 pub mod instance;
 // pub mod mesh;
 pub mod light;
+pub mod mesh;
 pub mod model;
+pub mod renderer;
 pub mod resources;
 pub mod state;
 pub mod texture;
 pub mod vertex;
-pub mod mesh;
 
 pub async fn run() {
     env_logger::init();
