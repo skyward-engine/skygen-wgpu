@@ -16,7 +16,7 @@ pub fn degrees(degrees: f32) -> f32 {
 
 #[cfg(test)]
 pub mod test {
-    use legion::{World};
+    use legion::World;
 
     use crate::renderer::{
         self,
@@ -30,22 +30,10 @@ pub mod test {
         pollster::block_on(renderer::graphics::run("skygen"));
 
         world.extend(vec![
-            (
-                Mesh::cube(2.0, [1.0, 0.0, 0.0, 1.0]),
-                Transform::new().translate(0.0, 1.0, 0.0),
-            ),
-            (
-                Mesh::cube(2.0, [0.0, 1.0, 0.0, 1.0]),
-                Transform::new().translate(1.0, 1.0, 0.0),
-            ),
-            (
-                Mesh::cube(2.0, [0.0, 0.0, 1.0, 1.0]),
-                Transform::new().translate(2.0, 1.0, 0.0),
-            ),
-            (
-                Mesh::cube(2.0, [1.0, 1.0, 1.0, 1.0]),
-                Transform::new().translate(3.0, 1.0, 0.0),
-            ),
+            (Mesh::cube(2.0), Transform::new().translate(0.0, 1.0, 0.0)),
+            (Mesh::cube(2.0), Transform::new().translate(1.0, 1.0, 0.0)),
+            (Mesh::cube(2.0), Transform::new().translate(2.0, 1.0, 0.0)),
+            (Mesh::cube(2.0), Transform::new().translate(3.0, 1.0, 0.0)),
         ]);
     }
 }

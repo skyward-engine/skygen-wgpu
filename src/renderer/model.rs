@@ -4,7 +4,7 @@ use wgpu::{
     Buffer, BufferUsages, VertexBufferLayout, VertexStepMode,
 };
 
-use crate::vertex::{ColoredVertex, Vertices};
+use crate::vertex::{Vertex, Vertices};
 
 use super::{
     buffer::{BufferData, Buffered},
@@ -38,11 +38,11 @@ impl Mesh {
         }
     }
 
-    pub fn cube(size: f32, color: [f32; 4]) -> Self {
-        Self::rect((size, size, size), color)
+    pub fn cube(size: f32) -> Self {
+        Self::rect((size, size, size))
     }
 
-    pub fn rect(sizes: (f32, f32, f32), color: [f32; 4]) -> Self {
+    pub fn rect(sizes: (f32, f32, f32)) -> Self {
         let vertices = [
             vec3(-sizes.0, -sizes.1, sizes.2),
             vec3(sizes.0, -sizes.1, sizes.2),
@@ -64,12 +64,12 @@ impl Mesh {
             6, 7, 2, 2, 7, 3,
         ];
 
-        let mapped = vertices.map(|position| ColoredVertex {
+        let mapped = vertices.map(|position| Vertex {
             position: [position.x, position.y, position.z],
-            color,
+            tex_coords: [0.0, 0.0],
         });
 
-        Self::new(Vertices::colored(&mapped), Vec::from(indices))
+        Self::new(Vertices::vertices(&mapped), Vec::from(indices))
     }
 }
 
