@@ -1,17 +1,18 @@
 use bytemuck::{Pod, Zeroable};
+use glam::{Mat3, Mat4, Quat, Vec3};
 
 pub struct Instance {
-    pub position: cgmath::Vector3<f32>,
-    pub rotation: cgmath::Quaternion<f32>,
+    pub position: Vec3,
+    pub rotation: Quat,
 }
 
 impl Instance {
     pub fn to_raw(&self) -> InstanceRaw {
-        let model =
-            cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation);
+        let model = Mat4::from_translation(self.position) * Mat4::from_quat(self.rotation);
+
         InstanceRaw {
-            model: model.into(),
-            normal: cgmath::Matrix3::from(self.rotation).into(),
+            model: model.to_cols_array_2d(),
+            normal: Mat3::from_quat(self.rotation).to_cols_array_2d(),
         }
     }
 }

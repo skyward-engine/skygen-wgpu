@@ -1,20 +1,20 @@
 use std::marker::PhantomData;
 
 use wgpu::{
-    include_wgsl, BindGroupLayout, BlendComponent, BlendFactor, BlendOperation, ColorTargetState,
-    ColorWrites, DepthStencilState, Device, Face, FrontFace, MultisampleState,
-    PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, RenderPipeline,
-    SurfaceConfiguration,
+    include_wgsl, BindGroupLayout, DepthStencilState, Device, Face, FragmentState, FrontFace,
+    MultisampleState, PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology,
+    RenderPipeline, SurfaceConfiguration,
 };
 
 use super::Descriptable;
 
 pub struct PipelineBuilder<'a, T: Descriptable> {
     surface_config: Option<&'a SurfaceConfiguration>,
-    texture_group_layout: Option<&'a BindGroupLayout>,
-    transform_group_layout: Option<&'a BindGroupLayout>,
+
+    layout_groups: &'a [&'a BindGroupLayout],
     depth_stencil_state: Option<DepthStencilState>,
     topology: Option<PrimitiveTopology>,
+    fragment_state: Option<FragmentState<'a>>,
     phantom: PhantomData<T>,
 }
 
@@ -22,10 +22,10 @@ impl<'a, T: Descriptable> PipelineBuilder<'a, T> {
     pub fn new() -> Self {
         Self {
             surface_config: None,
-            texture_group_layout: None,
-            transform_group_layout: None,
             depth_stencil_state: None,
             topology: None,
+            fragment_state: None,
+            layout_groups: &[],
             phantom: PhantomData,
         }
     }
@@ -35,19 +35,8 @@ impl<'a, T: Descriptable> PipelineBuilder<'a, T> {
         self
     }
 
-    pub fn with_texture_group_layout(
-        mut self,
-        texture_group_layout: Option<&'a BindGroupLayout>,
-    ) -> Self {
-        self.texture_group_layout = texture_group_layout;
-        self
-    }
-
-    pub fn with_transform_group_layout(
-        mut self,
-        transform_group_layout: Option<&'a BindGroupLayout>,
-    ) -> Self {
-        self.transform_group_layout = transform_group_layout;
+    pub fn layouts(mut self, layouts: &'a [&'a BindGroupLayout]) -> Self {
+        self.layout_groups = layouts;
         self
     }
 
@@ -61,16 +50,17 @@ impl<'a, T: Descriptable> PipelineBuilder<'a, T> {
         self
     }
 
+    pub fn with_fragment_state(mut self, fragment_state: FragmentState<'a>) -> Self {
+        self.fragment_state = Some(fragment_state);
+        self
+    }
+
     pub fn build(self, device: &Device) -> RenderPipeline {
         let vs_module = device.create_shader_module(include_wgsl!("./mod.rs"));
-        let fs_module = device.create_shader_module(include_wgsl!("./mod.rs"));
 
         let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some("PipelineBuilder-generated pipeline layout"),
-            bind_group_layouts: &[
-                self.texture_group_layout.unwrap(),
-                self.transform_group_layout.unwrap(),
-            ],
+            bind_group_layouts: self.layout_groups,
             push_constant_ranges: &[],
         });
 
@@ -80,26 +70,7 @@ impl<'a, T: Descriptable> PipelineBuilder<'a, T> {
                 entry_point: "vs_main",
                 buffers: &[T::desc()],
             },
-            fragment: Some(wgpu::FragmentState {
-                module: &fs_module,
-                entry_point: "fs_main",
-                targets: &[Some(ColorTargetState {
-                    format: self.surface_config.unwrap().format,
-                    write_mask: ColorWrites::ALL,
-                    blend: Some(wgpu::BlendState {
-                        color: BlendComponent {
-                            src_factor: BlendFactor::One,
-                            dst_factor: BlendFactor::OneMinusSrcAlpha,
-                            operation: wgpu::BlendOperation::Add,
-                        },
-                        alpha: BlendComponent {
-                            src_factor: BlendFactor::One,
-                            dst_factor: BlendFactor::One,
-                            operation: BlendOperation::Add,
-                        },
-                    }),
-                })],
-            }),
+            fragment: self.fragment_state,
             primitive: PrimitiveState {
                 topology: self.topology.expect("Topology is not set!"),
                 strip_index_format: None,
