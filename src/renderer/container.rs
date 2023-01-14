@@ -38,11 +38,13 @@ impl RenderContainer {
         let camera_buffer = BufferData::new(
             vec![Camera::default()],
             BufferUsages::COPY_DST | BufferUsages::UNIFORM,
+            device,
         );
 
         let projection_buffer = BufferData::new(
             vec![projection],
             BufferUsages::UNIFORM | BufferUsages::COPY_DST,
+            device,
         );
 
         let projection_bind_group = graphics::graphics_data()
@@ -119,8 +121,8 @@ impl RenderContainer {
             let material_group = Box::leak(Box::new(material.create_bind_group(device)));
 
             pass.set_vertex_buffer(0, vertex_buffer.slice(..));
-            pass.set_bind_group(0, &self.projection_bind_group, &[]);
-            pass.set_bind_group(1, material_group, &[]);
+            pass.set_bind_group(1, &self.projection_bind_group, &[]);
+            pass.set_bind_group(3, material_group, &[]);
 
             pass.draw_indexed(0..1, 1, 0..1);
         }

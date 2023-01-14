@@ -27,9 +27,11 @@ impl Projection {
 }
 
 impl Buffered for Projection {
-    type Type = Mat4;
+    type Type = [[f32; 4]; 4];
+
     fn pod(self) -> Self::Type {
-        self.into()
+        let matrix: Mat4 = self.into();
+        matrix.pod()
     }
 }
 

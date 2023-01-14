@@ -20,17 +20,14 @@ pub struct Mesh {
 
 impl Mesh {
     pub fn new(vertices: Vertices, indices: Vec<u16>) -> Self {
-        let vertex_buffer =
-            graphics_data()
-                .container()
-                .device
-                .create_buffer_init(&BufferInitDescriptor {
-                    label: None,
-                    usage: BufferUsages::VERTEX,
-                    contents: vertices.contents(),
-                });
+        let device = &graphics_data().container().device;
+        let vertex_buffer = device.create_buffer_init(&BufferInitDescriptor {
+            label: None,
+            usage: BufferUsages::VERTEX,
+            contents: vertices.contents(),
+        });
 
-        let index_buffer = BufferData::new(indices, BufferUsages::INDEX);
+        let index_buffer = BufferData::new(indices, BufferUsages::INDEX, device);
 
         Self {
             vertex_buffer,

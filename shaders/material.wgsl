@@ -25,7 +25,7 @@ struct FragmentData {
 @group(2) @binding(0)
 var<uniform> light: Light;
 
-@group(0) @binding(0)
+@group(3) @binding(0)
 var material: Material;
 
 
