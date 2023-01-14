@@ -1,4 +1,4 @@
-use glam::{vec3, Mat4, Quat, Vec3};
+use glam::{vec3, EulerRot, Mat4, Quat, Vec3};
 use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
     Buffer, BufferUsages, VertexBufferLayout, VertexStepMode,
@@ -12,7 +12,7 @@ use super::{
     Descriptable,
 };
 
-#[derive(Debug,)]
+#[derive(Debug)]
 pub struct Mesh {
     pub vertex_buffer: Buffer,
     pub index_buffer: BufferData<u16>,
@@ -74,9 +74,12 @@ impl Mesh {
 }
 
 pub struct Transform {
-    translation: Vec3,
-    rotation: Quat,
-    scale: Vec3,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub yaw: f32,
+    pub pitch: f32,
+    pub roll: f32,
 }
 
 impl Transform {
@@ -89,26 +92,34 @@ impl Transform {
 
     pub fn new() -> Transform {
         Transform {
-            translation: Vec3::ZERO,
-            rotation: Quat::IDENTITY,
-            scale: Vec3::ONE,
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+            yaw: 0.0,
+            pitch: 0.0,
+            roll: 0.0,
         }
     }
 
-    pub fn translate(&mut self, translation: Vec3) {
-        self.translation += translation;
+    pub fn translate(mut self, x: f32, y: f32, z: f32) -> Self {
+        self.x += x;
+        self.y += y;
+        self.z += z;
+        self
     }
 
-    pub fn rotate(&mut self, rotation: Quat) {
-        self.rotation = rotation * self.rotation;
-    }
-
-    pub fn scale(&mut self, scale: Vec3) {
-        self.scale *= scale;
+    pub fn rotate(mut self, yaw: f32, pitch: f32, roll: f32) -> Self {
+        self.yaw += yaw;
+        self.pitch += pitch;
+        self.roll += roll;
+        self
     }
 
     pub fn matrix(&self) -> Mat4 {
-        Mat4::from_scale_rotation_translation(self.scale, self.rotation, self.translation)
+        let mut rot_mat = Mat4::from_euler(EulerRot::XYZ, self.pitch, self.yaw, self.roll);
+        let trans_mat = Mat4::from_translation(Vec3::new(self.x, self.y, self.z));
+
+        trans_mat * rot_mat
     }
 }
 
@@ -118,16 +129,6 @@ impl Descriptable for Transform {
             array_stride: std::mem::size_of::<[[f32; 4]; 4]>() as u64,
             step_mode: VertexStepMode::Instance,
             attributes: &Self::ATTRIBS,
-        }
-    }
-}
-
-impl Default for Transform {
-    fn default() -> Self {
-        Self {
-            translation: Vec3::ZERO,
-            rotation: Quat::IDENTITY,
-            scale: Vec3::ONE,
         }
     }
 }

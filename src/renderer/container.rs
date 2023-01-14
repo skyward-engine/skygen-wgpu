@@ -14,7 +14,10 @@ use crate::{
 };
 
 use super::{
-    buffer::BufferData, graphics, model::{Transform, Mesh}, pipeline::PipelineBuilder,
+    buffer::BufferData,
+    graphics,
+    model::{Mesh, Transform},
+    pipeline::PipelineBuilder,
     Descriptable,
 };
 

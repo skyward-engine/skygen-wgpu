@@ -16,9 +16,12 @@ pub fn degrees(degrees: f32) -> f32 {
 
 #[cfg(test)]
 pub mod test {
-    use legion::{World, WorldOptions, Entity};
+    use legion::{Entity, World, WorldOptions};
 
-    use crate::renderer::{self, model::Mesh};
+    use crate::renderer::{
+        self,
+        model::{Mesh, Transform},
+    };
 
     #[test]
     pub fn cube_test() {
@@ -26,12 +29,23 @@ pub mod test {
 
         pollster::block_on(renderer::graphics::run("skygen"));
 
-        world.push((Mesh::cube(2.0, [1.0, 0.0, 0.0, 1.0]), ));
         world.extend(vec![
-            (Mesh::cube(2.0, [1.0, 0.0, 0.0, 1.0]), ),
-            (Mesh::cube(2.0, [0.0, 1.0, 0.0, 1.0]), ),
-            (Mesh::cube(2.0, [0.0, 0.0, 1.0, 1.0]), ),
-            (Mesh::cube(2.0, [1.0, 1.0, 1.0, 1.0]), ),
+            (
+                Mesh::cube(2.0, [1.0, 0.0, 0.0, 1.0]),
+                Transform::new().translate(0.0, 1.0, 0.0),
+            ),
+            (
+                Mesh::cube(2.0, [0.0, 1.0, 0.0, 1.0]),
+                Transform::new().translate(1.0, 1.0, 0.0),
+            ),
+            (
+                Mesh::cube(2.0, [0.0, 0.0, 1.0, 1.0]),
+                Transform::new().translate(2.0, 1.0, 0.0),
+            ),
+            (
+                Mesh::cube(2.0, [1.0, 1.0, 1.0, 1.0]),
+                Transform::new().translate(3.0, 1.0, 0.0),
+            ),
         ]);
     }
 }
