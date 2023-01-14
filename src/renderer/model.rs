@@ -116,7 +116,7 @@ impl Transform {
     }
 
     pub fn matrix(&self) -> Mat4 {
-        let mut rot_mat = Mat4::from_euler(EulerRot::XYZ, self.pitch, self.yaw, self.roll);
+        let rot_mat = Mat4::from_euler(EulerRot::XYZ, self.pitch, self.yaw, self.roll);
         let trans_mat = Mat4::from_translation(Vec3::new(self.x, self.y, self.z));
 
         trans_mat * rot_mat
