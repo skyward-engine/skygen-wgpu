@@ -4,7 +4,7 @@ use hashbrown::HashMap;
 use legion::{IntoQuery, World};
 use wgpu::{
     BindGroup, BindGroupEntry, BindGroupLayout, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
-    BindingType, BufferBindingType, BufferUsages, CommandEncoder, Device, PrimitiveTopology, Queue,
+    BindingType, BufferBindingType, BufferUsages, CommandEncoder, Device, PrimitiveTopology,
     RenderPassDescriptor, RenderPipeline, ShaderStages, SurfaceConfiguration,
 };
 

@@ -1,4 +1,4 @@
-use glam::{vec3, EulerRot, Mat4, Quat, Vec3};
+use glam::{vec3, EulerRot, Mat4, Vec3};
 use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
     Buffer, BufferUsages, VertexBufferLayout, VertexStepMode,

@@ -1,6 +1,6 @@
 use image::{DynamicImage, GenericImageView, ImageError};
 use wgpu::{
-    BindGroupEntry, BindGroupLayout, BindGroupLayoutDescriptor, Extent3d, ImageCopyTexture,
+    BindGroupEntry, BindGroupLayout, Extent3d, ImageCopyTexture,
     ImageDataLayout, Origin3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
 };
 

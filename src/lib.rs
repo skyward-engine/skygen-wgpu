@@ -16,7 +16,7 @@ pub fn degrees(degrees: f32) -> f32 {
 
 #[cfg(test)]
 pub mod test {
-    use legion::{Entity, World, WorldOptions};
+    use legion::{World};
 
     use crate::renderer::{
         self,
