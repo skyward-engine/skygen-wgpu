@@ -1,5 +1,6 @@
 use wgpu::{Buffer, BufferUsages};
 
+#[derive(Debug)]
 pub struct BufferData<T: Buffered> {
     pub values: Vec<T>,
     pub buffer: Buffer,
@@ -8,7 +9,7 @@ pub struct BufferData<T: Buffered> {
 }
 
 impl<T: Buffered> BufferData<T> {
-    pub fn new(values: Vec<T>, usage: BufferUsages) -> Self {
+    pub fn new(_values: Vec<T>, _usage: BufferUsages) -> Self {
         // let buffer
         todo!()
     }

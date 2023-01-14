@@ -5,7 +5,7 @@ use legion::{IntoQuery, World};
 use wgpu::{
     BindGroup, BindGroupEntry, BindGroupLayout, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
     BindingType, BufferBindingType, BufferUsages, CommandEncoder, Device, PrimitiveTopology,
-    RenderPassDescriptor, RenderPipeline, ShaderStages, SurfaceConfiguration, Queue,
+    RenderPassDescriptor, RenderPipeline, ShaderStages, SurfaceConfiguration,
 };
 
 use crate::{
@@ -14,7 +14,10 @@ use crate::{
 };
 
 use super::{
-    buffer::BufferData, graphics, mesh::Mesh, model::Transform, pipeline::PipelineBuilder,
+    buffer::BufferData,
+    graphics,
+    model::{Mesh, Transform},
+    pipeline::PipelineBuilder,
     Descriptable,
 };
 
@@ -107,8 +110,7 @@ impl RenderContainer {
             depth_stencil_attachment: None,
         };
 
-
-        for (mesh, _, material) in <(&Mesh, &Transform, &'static Material)>::query().iter(world) {
+        for (mesh, _, material) in <(&Mesh, &Transform, &Material)>::query().iter(world) {
             let mut pass = encoder.begin_render_pass(&descriptor);
 
             let vertex_buffer = &mesh.vertex_buffer;
@@ -117,9 +119,8 @@ impl RenderContainer {
             let material_group = Box::leak(Box::new(material.create_bind_group(device)));
 
             pass.set_vertex_buffer(0, vertex_buffer.slice(..));
-            // pass.set_bind_group(0, bind_group, offsets)
-            pass.set_bind_group(1, &self.projection_bind_group, &[]);
-            pass.set_bind_group(2, material_group, &[]);
+            pass.set_bind_group(0, &self.projection_bind_group, &[]);
+            pass.set_bind_group(1, material_group, &[]);
 
             pass.draw_indexed(0..1, 1, 0..1);
         }
@@ -154,9 +155,6 @@ impl RenderContainer {
         let id = material.id();
         let topology = T::topology();
 
-        let texture =
-            T::texture_bind_group_layout().expect("Expected to find texture bind group layout!");
-
         if !self.pipelines.contains_key(&id) {
             self.pipelines.insert(
                 id,
@@ -164,7 +162,6 @@ impl RenderContainer {
                     .with_topology(topology)
                     .with_surface_config(surface_config)
                     .layouts(&[
-                        &texture,
                         &self.projection_bind_layout,
                         &Material::layout_binding(device),
                     ])
@@ -177,18 +174,11 @@ impl RenderContainer {
 pub trait RenderComponent: Any {
     // Returns the primitive topology for this render component.
     fn topology() -> PrimitiveTopology;
-
-    // Returns the bind group layout for the texture, if one exists.
-    fn texture_bind_group_layout<'a>() -> Option<&'a BindGroupLayout>;
 }
 
 struct MeshType {}
 
 impl RenderComponent for MeshType {
-    fn texture_bind_group_layout<'a>() -> Option<&'a BindGroupLayout> {
-        None
-    }
-
     fn topology() -> PrimitiveTopology {
         PrimitiveTopology::LineStrip
     }

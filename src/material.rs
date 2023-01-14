@@ -4,47 +4,65 @@ use wgpu::{
     BufferUsages, Device, ShaderStages,
 };
 
+use crate::texture::Texture;
+
 pub struct Material {
-    pub color: [f32; 4],
+    pub diffuse_color: [f32; 4],
+    pub diffuse_texture: Texture,
+    pub normal_texture: Texture,
     pub reflectance: f32,
     pub metalness: f32,
 }
 
 impl Material {
-    const LAYOUT_DESCRIPTOR: BindGroupLayoutDescriptor<'static> = BindGroupLayoutDescriptor {
-        label: None,
-        entries: &[
-            BindGroupLayoutEntry {
-                binding: 0,
-                count: None,
-                visibility: ShaderStages::FRAGMENT,
-                ty: BindingType::Buffer {
-                    ty: BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
+    const LAYOUT_DESCRIPTOR: BindGroupLayoutDescriptor<'static> = {
+        let diffuse_texture = Texture::create_bind_layout_entries(1);
+        let normal_texture = Texture::create_bind_layout_entries(3);
+
+        BindGroupLayoutDescriptor {
+            label: None,
+            entries: &[
+                // diffuse color entry
+                BindGroupLayoutEntry {
+                    binding: 0,
+                    count: None,
+                    visibility: ShaderStages::FRAGMENT,
+                    ty: BindingType::Buffer {
+                        ty: BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
                 },
-            },
-            BindGroupLayoutEntry {
-                binding: 1,
-                count: None,
-                visibility: ShaderStages::FRAGMENT,
-                ty: BindingType::Buffer {
-                    ty: BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
+                // diffuse texture entries
+                diffuse_texture[0],
+                diffuse_texture[1],
+                // normal texture entries
+                normal_texture[0],
+                normal_texture[1],
+                // reflectance buffer
+                BindGroupLayoutEntry {
+                    binding: 5,
+                    count: None,
+                    visibility: ShaderStages::FRAGMENT,
+                    ty: BindingType::Buffer {
+                        ty: BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
                 },
-            },
-            BindGroupLayoutEntry {
-                binding: 2,
-                count: None,
-                visibility: ShaderStages::FRAGMENT,
-                ty: BindingType::Buffer {
-                    ty: BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
+                // metalness buffer
+                BindGroupLayoutEntry {
+                    binding: 6,
+                    count: None,
+                    visibility: ShaderStages::FRAGMENT,
+                    ty: BindingType::Buffer {
+                        ty: BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
                 },
-            },
-        ],
+            ],
+        }
     };
 
     pub fn id(&self) -> i32 {
