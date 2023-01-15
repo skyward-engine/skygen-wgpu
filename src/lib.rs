@@ -4,6 +4,7 @@ pub mod instance;
 // pub mod mesh;
 pub mod light;
 // pub mod model;
+pub mod app;
 pub mod material;
 pub mod projection;
 pub mod renderer;
@@ -16,24 +17,25 @@ pub fn degrees(degrees: f32) -> f32 {
 
 #[cfg(test)]
 pub mod test {
-    use legion::World;
+    use legion::{system, systems::CommandBuffer};
 
-    use crate::renderer::{
-        self,
-        model::{Mesh, Transform},
+    use crate::{
+        app::App,
+        renderer::model::{Mesh, Transform},
     };
 
     #[test]
     pub fn cube_test() {
-        let mut world = World::default();
+        #[system]
+        pub fn create_entities(command: &mut CommandBuffer) {
+            command.extend(vec![
+                (Mesh::cube(2.0), Transform::new().translate(0.0, 1.0, 0.0)),
+                (Mesh::cube(2.0), Transform::new().translate(1.0, 1.0, 0.0)),
+                (Mesh::cube(2.0), Transform::new().translate(2.0, 1.0, 0.0)),
+                (Mesh::cube(2.0), Transform::new().translate(3.0, 1.0, 0.0)),
+            ]);
+        }
 
-        pollster::block_on(renderer::graphics::run("skygen"));
-
-        world.extend(vec![
-            (Mesh::cube(2.0), Transform::new().translate(0.0, 1.0, 0.0)),
-            (Mesh::cube(2.0), Transform::new().translate(1.0, 1.0, 0.0)),
-            (Mesh::cube(2.0), Transform::new().translate(2.0, 1.0, 0.0)),
-            (Mesh::cube(2.0), Transform::new().translate(3.0, 1.0, 0.0)),
-        ]);
+        pollster::block_on(App::new().init_system(create_entities_system()).build());
     }
 }

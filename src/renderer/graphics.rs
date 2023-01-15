@@ -1,22 +1,16 @@
 use std::fmt::Debug;
 
-use once_cell::sync::OnceCell;
-use parking_lot::{RwLock, RwLockReadGuard};
+use legion::World;
+use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use wgpu::{Device, Features, Queue, Surface, SurfaceConfiguration};
-use winit::{
-    event_loop::EventLoopBuilder,
-    platform::windows::EventLoopBuilderExtWindows,
-    window::{Window, WindowBuilder},
-};
+use winit::window::Window;
 
-static GRAPHICS_DATA: OnceCell<GraphicsData> = OnceCell::new();
+use crate::projection::Projection;
 
-pub fn graphics_data<'a>() -> &'a GraphicsData {
-    GRAPHICS_DATA.get().unwrap()
-}
+use super::container::RenderContainer;
 
 pub struct GraphicsData {
-    container: RwLock<GraphicContainer>,
+    pub container: RwLock<GraphicContainer>,
 }
 
 impl Debug for GraphicsData {
@@ -29,6 +23,10 @@ impl GraphicsData {
     pub fn container(&self) -> RwLockReadGuard<GraphicContainer> {
         self.container.read()
     }
+
+    pub fn container_mut(&self) -> RwLockWriteGuard<GraphicContainer> {
+        self.container.write()
+    }
 }
 
 pub struct GraphicContainer {
@@ -36,10 +34,11 @@ pub struct GraphicContainer {
     pub surface: Surface,
     pub config: SurfaceConfiguration,
     pub queue: Queue,
+    pub render_container: RenderContainer,
 }
 
 impl GraphicContainer {
-    pub async fn new(window: &Window, features: Features) -> Self {
+    pub async fn new(window: &Window, features: Features, projection: Projection) -> Self {
         let instance = wgpu::Instance::new(wgpu::Backends::all());
         let surface = unsafe { instance.create_surface(&window) };
 
@@ -75,27 +74,26 @@ impl GraphicContainer {
         };
 
         Self {
+            render_container: RenderContainer::new(projection, &device),
             device,
             surface,
             queue,
             config,
         }
     }
-}
 
-pub async fn run(window_title: &str) {
-    let event_loop = EventLoopBuilder::new().with_any_thread(true).build();
-    let window = WindowBuilder::new()
-        .with_title(window_title)
-        .build(&event_loop)
-        .unwrap();
+    pub(crate) fn render(&mut self, world: &mut World) -> Result<(), wgpu::SurfaceError> {
+        let renderer = &self.render_container;
+        let output = self.surface.get_current_texture()?;
+        let device = &self.device;
+        let mut encoder =
+            device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
-    let features = Features::empty();
+        renderer.render_meshes(device, &mut encoder, world);
 
-    let container = GraphicContainer::new(&window, features).await;
-    let data = GraphicsData {
-        container: RwLock::new(container),
-    };
+        self.queue.submit(std::iter::once(encoder.finish()));
+        output.present();
 
-    GRAPHICS_DATA.set(data).expect("owo what's this");
+        Ok(())
+    }
 }

@@ -1,22 +1,19 @@
-use std::borrow::Cow;
-
 use bytemuck::{Pod, Zeroable};
 
 use crate::renderer::Descriptable;
 
-pub struct Vertices<'a> {
-    contents: Cow<'a, [Vertex]>,
+#[derive(Debug)]
+pub struct Vertices {
+    contents: Vec<Vertex>,
 }
 
-impl<'a> Vertices<'a> {
-    pub fn contents(&'a self) -> &'a [u8] {
+impl Vertices {
+    pub fn contents<'a>(&'a self) -> &'a [u8] {
         bytemuck::cast_slice(&self.contents)
     }
 
-    pub fn vertices(vertices: &'a [Vertex]) -> Self {
-        Self {
-            contents: Cow::Borrowed(vertices),
-        }
+    pub fn vertices(vertices: Vec<Vertex>) -> Self {
+        Self { contents: vertices }
     }
 }
 

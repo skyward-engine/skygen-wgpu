@@ -1,38 +1,54 @@
+use std::fmt::Debug;
+
 use glam::{vec3, EulerRot, Mat4, Vec3};
 use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
-    Buffer, BufferUsages, VertexBufferLayout, VertexStepMode,
+    Buffer, BufferUsages, Device, VertexBufferLayout, VertexStepMode,
 };
 
 use crate::vertex::{Vertex, Vertices};
 
 use super::{
     buffer::{BufferData, Buffered},
-    graphics::graphics_data,
     Descriptable,
 };
 
-#[derive(Debug)]
 pub struct Mesh {
+    pub vertices: Vertices,
+    pub indices: Vec<u16>,
+    pub buffered: Option<BufferedMesh>,
+}
+
+impl Debug for Mesh {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.pad("hey")
+    }
+}
+
+pub struct BufferedMesh {
     pub vertex_buffer: Buffer,
     pub index_buffer: BufferData<u16>,
 }
 
 impl Mesh {
     pub fn new(vertices: Vertices, indices: Vec<u16>) -> Self {
-        let device = &graphics_data().container().device;
-        let vertex_buffer = device.create_buffer_init(&BufferInitDescriptor {
-            label: None,
-            usage: BufferUsages::VERTEX,
-            contents: vertices.contents(),
-        });
-
-        let index_buffer = BufferData::new(indices, BufferUsages::INDEX, device);
-
         Self {
-            vertex_buffer,
-            index_buffer,
+            vertices,
+            indices,
+            buffered: None,
         }
+    }
+
+    pub fn build_buffer<'a>(&mut self, device: &Device) -> &Self {
+        self.buffered = Some(BufferedMesh {
+            vertex_buffer: device.create_buffer_init(&BufferInitDescriptor {
+                label: None,
+                usage: BufferUsages::VERTEX,
+                contents: self.vertices.contents(),
+            }),
+            index_buffer: BufferData::new(self.indices.clone(), BufferUsages::INDEX, device),
+        });
+        self
     }
 
     pub fn cube(size: f32) -> Self {
@@ -61,12 +77,14 @@ impl Mesh {
             6, 7, 2, 2, 7, 3,
         ];
 
-        let mapped = vertices.map(|position| Vertex {
-            position: [position.x, position.y, position.z],
-            tex_coords: [0.0, 0.0],
-        });
+        let mapped = vertices
+            .map(|position| Vertex {
+                position: [position.x, position.y, position.z],
+                tex_coords: [0.0, 0.0],
+            })
+            .to_vec();
 
-        Self::new(Vertices::vertices(&mapped), Vec::from(indices))
+        Self::new(Vertices::vertices(mapped), Vec::from(indices))
     }
 }
 

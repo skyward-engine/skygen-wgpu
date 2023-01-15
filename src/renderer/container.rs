@@ -15,7 +15,6 @@ use crate::{
 
 use super::{
     buffer::BufferData,
-    graphics,
     model::{Mesh, Transform},
     pipeline::PipelineBuilder,
     Descriptable,
@@ -34,7 +33,6 @@ pub struct RenderContainer {
 impl RenderContainer {
     pub fn new(projection: Projection, device: &Device) -> Self {
         let projection_layout = RenderContainer::bind_group_layout(device);
-
         let camera_buffer = BufferData::new(
             vec![Camera::default()],
             BufferUsages::COPY_DST | BufferUsages::UNIFORM,
@@ -47,23 +45,20 @@ impl RenderContainer {
             device,
         );
 
-        let projection_bind_group = graphics::graphics_data()
-            .container()
-            .device
-            .create_bind_group(&wgpu::BindGroupDescriptor {
-                label: None,
-                layout: &projection_layout,
-                entries: &[
-                    BindGroupEntry {
-                        binding: 0,
-                        resource: projection_buffer.buffer.as_entire_binding(),
-                    },
-                    BindGroupEntry {
-                        binding: 1,
-                        resource: camera_buffer.buffer.as_entire_binding(),
-                    },
-                ],
-            });
+        let projection_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &projection_layout,
+            entries: &[
+                BindGroupEntry {
+                    binding: 0,
+                    resource: projection_buffer.buffer.as_entire_binding(),
+                },
+                BindGroupEntry {
+                    binding: 1,
+                    resource: camera_buffer.buffer.as_entire_binding(),
+                },
+            ],
+        });
 
         Self {
             pipelines: HashMap::new(),
@@ -100,23 +95,19 @@ impl RenderContainer {
         })
     }
 
-    pub fn render_meshes(
-        &mut self,
-        device: &Device,
-        encoder: &mut CommandEncoder,
-        world: &mut World,
-    ) {
+    pub fn render_meshes(&self, device: &Device, encoder: &mut CommandEncoder, world: &mut World) {
         let descriptor = RenderPassDescriptor {
             label: None,
             color_attachments: &[],
             depth_stencil_attachment: None,
         };
 
-        for (mesh, _, material) in <(&Mesh, &Transform, &Material)>::query().iter(world) {
+        for (mesh, _, material) in <(&mut Mesh, &Transform, &Material)>::query().iter_mut(world) {
             let mut pass = encoder.begin_render_pass(&descriptor);
 
-            let vertex_buffer = &mesh.vertex_buffer;
-            // let material_group = material.create_bind_group(device);
+            let buffered_mesh = mesh.build_buffer(device).buffered.as_ref().unwrap();
+            let vertex_buffer = &buffered_mesh.vertex_buffer;
+
             // todo: don't leak this resource
             let material_group = Box::leak(Box::new(material.create_bind_group(device)));
 
